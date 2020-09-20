@@ -8,6 +8,7 @@ try:
 except ImportError as ex:
   import ConfigParser as configparser
 
+import os
 from glob import glob
 from hashlib import md5
 
@@ -609,11 +610,17 @@ class terrariumConfig(object):
   # End system functions
 
   def get_meross_cloud(self):
-    return self.__get_config('meross_cloud')
+    data = self.__get_config('meross_cloud')
+    os.environ['MEROSS_EMAIL']    = data['meross_username']
+    os.environ['MEROSS_PASSWORD'] = data['meross_password']
+    return data
 
   def set_meross_cloud(self,data):
     data = {'meross_username' : data['meross_username'],
             'meross_password' : data['meross_password']}
+
+    os.environ['MEROSS_EMAIL']    = data['meross_username']
+    os.environ['MEROSS_PASSWORD'] = data['meross_password']
 
     return self.__update_config('meross_cloud',data)
   # End system functions

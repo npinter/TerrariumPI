@@ -37,11 +37,11 @@ from gpiozero import Energenie
 from time import time
 from gevent import sleep
 
-try:
-  from meross_iot.api import MerossHttpClient, UnauthorizedException
-except ImportError as ex:
-  # Python 2 does not support Meross XXX Power Switches
-  pass
+# try:
+#   from meross_iot.api import MerossHttpClient, UnauthorizedException
+# except ImportError as ex:
+#   # Python 2 does not support Meross XXX Power Switches
+#   pass
 
 from terrariumUtils import terrariumUtils, terrariumTimer, terrariumCache
 
@@ -65,7 +65,10 @@ class terrariumPowerSwitchSource(object):
     self.load_hardware()
 
     self.state = None
-    ignore_scanning = [terrariumPowerSwitchWeMo.TYPE, terrariumPowerSwitchMSS425E.TYPE]
+    ignore_scanning = [terrariumPowerSwitchWeMo.TYPE]
+    if sys.version_info >= (3, 6):
+      ignore_scanning.append('meross')
+
     if sys.version_info >= (3, 7):
       ignore_scanning.append('tplinkkasa')
 
@@ -653,7 +656,7 @@ class terrariumPowerSwitchSonoff(terrariumPowerSwitchSource):
           url += 'user={}&password={}&'.format(data['user'],data['password'])
 
         url += 'cmnd=Power{}'.format(data['nr'])
-      
+
         state = terrariumUtils.get_remote_data(url)
         if state is None:
           raise Exception('No data, jump to next test')
@@ -1240,67 +1243,67 @@ class terrariumPowerSwitchRemote(terrariumPowerSwitchSource):
 
     return terrariumPowerSwitch.ON if terrariumUtils.is_true(data) else terrariumPowerSwitch.OFF
 
-class terrariumPowerSwitchMSS425E(terrariumPowerSwitchSource):
-  TYPE = 'mss425e'
+# class terrariumPowerSwitchMSS425E(terrariumPowerSwitchSource):
+#   TYPE = 'mss425e'
 
-  def __init__(self, switch_id, address, name = '', prev_state = None, callback = None):
-    self.__device = address[0]
-    super(terrariumPowerSwitchMSS425E,self).__init__(switch_id, address[1], name, prev_state, callback)
+#   def __init__(self, switch_id, address, name = '', prev_state = None, callback = None):
+#     self.__device = address[0]
+#     super(terrariumPowerSwitchMSS425E,self).__init__(switch_id, address[1], name, prev_state, callback)
 
-  def set_hardware_state(self, state, force = False):
-    if state is terrariumPowerSwitch.ON:
-      self.__device.turn_on_channel(int(self.get_address()))
-    else:
-      self.__device.turn_off_channel(int(self.get_address()))
+#   def set_hardware_state(self, state, force = False):
+#     if state is terrariumPowerSwitch.ON:
+#       self.__device.turn_on_channel(int(self.get_address()))
+#     else:
+#       self.__device.turn_off_channel(int(self.get_address()))
 
-  def get_hardware_state(self):
-    data = None
+#   def get_hardware_state(self):
+#     data = None
 
-    try:
-      tmpdata = self.__device.get_sys_data()
-      for channel_data in tmpdata['all']['digest']['togglex']:
-        if int(self.get_address()) == int(channel_data['channel']):
-          data = channel_data['onoff']
-          break
+#     try:
+#       tmpdata = self.__device.get_sys_data()
+#       for channel_data in tmpdata['all']['digest']['togglex']:
+#         if int(self.get_address()) == int(channel_data['channel']):
+#           data = channel_data['onoff']
+#           break
 
-    except Exception as ex:
-      print('Get hardware ex')
-      print(ex)
+#     except Exception as ex:
+#       print('Get hardware ex')
+#       print(ex)
 
-    return terrariumPowerSwitch.ON if terrariumUtils.is_true(data) else terrariumPowerSwitch.OFF
+#     return terrariumPowerSwitch.ON if terrariumUtils.is_true(data) else terrariumPowerSwitch.OFF
 
-  @staticmethod
-  def scan_power_switches(callback=None, **kwargs):
-    if '' == kwargs['meross_username'] or '' == kwargs['meross_password']:
-      logger.info('Meross cloud is not enabled.')
-      return
+#   @staticmethod
+#   def scan_power_switches(callback=None, **kwargs):
+#     if '' == kwargs['meross_username'] or '' == kwargs['meross_password']:
+#       logger.info('Meross cloud is not enabled.')
+#       return
 
-    try:
-      httpHandler = MerossHttpClient(email=kwargs['meross_username'], password=kwargs['meross_password'])
-      logger.info('Logged into Meross cloud successfull.')
+#     try:
+#       httpHandler = MerossHttpClient(email=kwargs['meross_username'], password=kwargs['meross_password'])
+#       logger.info('Logged into Meross cloud successfull.')
 
-      devices = httpHandler.list_supported_devices()
-      if len(devices) == 0:
-        logger.warning('Unfortunaly your Meross device is not supported by this software. We found zero power switches.')
-      for counter, device in enumerate(devices):
-        data = device.get_sys_data()
+#       devices = httpHandler.list_supported_devices()
+#       if len(devices) == 0:
+#         logger.warning('Unfortunaly your Meross device is not supported by this software. We found zero power switches.')
+#       for counter, device in enumerate(devices):
+#         data = device.get_sys_data()
 
-        try:
-          for channel_data in data['all']['digest']['togglex']:
-            if int(channel_data['channel']) > 0:
-              yield terrariumPowerSwitch(md5((terrariumPowerSwitchMSS425E.TYPE + data['all']['system']['hardware']['macAddress'] + str(channel_data['channel'])).encode()).hexdigest(),
-                                         terrariumPowerSwitchMSS425E.TYPE,
-                                         (device,int(channel_data['channel'])),
-                                         'Channel {}'.format(channel_data['channel']),
-                                         None,
-                                         callback)
+#         try:
+#           for channel_data in data['all']['digest']['togglex']:
+#             if int(channel_data['channel']) > 0:
+#               yield terrariumPowerSwitch(md5((terrariumPowerSwitchMSS425E.TYPE + data['all']['system']['hardware']['macAddress'] + str(channel_data['channel'])).encode()).hexdigest(),
+#                                          terrariumPowerSwitchMSS425E.TYPE,
+#                                          (device,int(channel_data['channel'])),
+#                                          'Channel {}'.format(channel_data['channel']),
+#                                          None,
+#                                          callback)
 
-        except Exception as ex:
-          print('Scan error in terrariumPowerSwitchMSS425E')
-          print(ex)
+#         except Exception as ex:
+#           print('Scan error in terrariumPowerSwitchMSS425E')
+#           print(ex)
 
-    except UnauthorizedException as ex:
-      logger.error('Authentication error with Merros cloud for \'{}\' type power switch. Please check username and password.'.format(terrariumPowerSwitchMSS425E.TYPE))
+#     except UnauthorizedException as ex:
+#       logger.error('Authentication error with Merros cloud for \'{}\' type power switch. Please check username and password.'.format(terrariumPowerSwitchMSS425E.TYPE))
 
 class terrariumPowerSwitchTypeException(TypeError):
   '''There is a problem with loading a hardware switch. Invalid hardware type.'''
@@ -1334,9 +1337,10 @@ class terrariumPowerSwitch(object):
                     terrariumPowerSwitchSonoff,
                     terrariumPowerSwitchScript]
 
-  if sys.version_info >= (3, 3):
-    # Merros IoT library needs Python 3.3+
-    POWER_SWITCHES.append(terrariumPowerSwitchMSS425E)
+  if sys.version_info >= (3, 6):
+    # Merros IoT library needs Python 3.6+
+    from terrariumSwitchMeross import terrariumPowerSwitchMeross
+    POWER_SWITCHES.append(terrariumPowerSwitchMeross)
 
   if sys.version_info >= (3, 7):
     # Merros IoT library needs Python 3.3+
