@@ -12,6 +12,7 @@ import os
 
 from meross_iot.http_api import MerossHttpClient
 from meross_iot.manager import MerossManager
+from meross_iot.controller.mixins.toggle import ToggleXMixin
 
 class terrariumPowerSwitchMeross(terrariumPowerSwitchSource):
   TYPE = 'meross'
@@ -123,7 +124,8 @@ class terrariumPowerSwitchMeross(terrariumPowerSwitchSource):
 
       # Discover devices.
       await manager.async_device_discovery()
-      meross_devices = manager.find_devices()
+      # Filter on devices that can toggle....
+      meross_devices = manager.find_devices(device_class=ToggleXMixin)
 
       # Print them
       print("I've found the following devices:")
