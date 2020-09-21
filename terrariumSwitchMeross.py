@@ -108,7 +108,7 @@ class terrariumPowerSwitchMeross(terrariumPowerSwitchSource):
     EMAIL    = os.environ.get('MEROSS_EMAIL', None)
     PASSWORD = os.environ.get('MEROSS_PASSWORD', None)
 
-    if EMAIL is None or PASSWORD is None:
+    if '' == EMAIL or '' == PASSWORD:
       logger.info('Meross cloud is not enabled.')
       return
 
