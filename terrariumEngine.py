@@ -570,9 +570,15 @@ class terrariumEngine(object):
     logger.info('Start terrariumPI webcams')
     while self.__running:
       starttime = time.time()
+
+      switch = self.power_switches["1602530385"]
+      switch.on()
+
       for webcamid in self.webcams:
         self.webcams[webcamid].update()
         sleep(0.1)
+
+      switch.off()
 
       duration = (time.time() - starttime) + time_short
       if duration < terrariumEngine.LOOP_TIMEOUT:
