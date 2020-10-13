@@ -639,7 +639,7 @@ class terrariumWebcamUSB(terrariumWebcamSource):
 
       if readok:
         logger.debug('Save USB to jpeg')
-        jpeg = Image.fromarray(cv2.cvtColor(image,cv2.COLOR_BGR2RGB))
+        jpeg = Image.fromarray(image)
         jpeg.save(stream,'JPEG')
         logger.debug('Done creating USB image')
         self.raw_image = stream
